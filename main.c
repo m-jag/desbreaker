@@ -7,6 +7,7 @@
 
 #include "DES.h"
 #include "comparefile.h"
+//Comment for Xin
 
 //////////////////////////////////////////////////////
 //                 GLOBAL VARIABLES                //
