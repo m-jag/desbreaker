@@ -1,0 +1,8 @@
+#ifndef COMPAREFILE_H
+#define	COMPAREFILE_H
+
+#define MAX 1000
+
+bool compareFile(FILE * file1, FILE * file2);
+
+#endif
