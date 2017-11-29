@@ -35,7 +35,7 @@ bool compareFile(FILE * file1, FILE * file2)
 
         //printf("\nc1 : %d, c2 : %d \n", c1, c2);
 
-        if(c1 != c2)
+        if(c1 != c2 || c1 == 0 || c2 == 0)
         {
                 //printf("Different number of lines in files!\n");
                 //printf("file1 has %d lines and file2 has %d lines\n", c1, c2);

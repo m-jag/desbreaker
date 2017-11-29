@@ -49,13 +49,15 @@ static void runChild(uint64_t start_key, uint64_t batchsize)
         //
         // 1. Verify parity bits of the key
         //
-        if(!key_parity_verify(key))
+	bool key_valid = key_parity_verify(key);
+        if(!key_valid || true)
         {
+	  printf("check: %s\n", (key_valid? "valid": "invalid"));
             //Bad Key
             //printf("The key you used is malformated\n"); // More error msg in function
             continue;
         }
-
+	
         //
         // 2. Get the 16 subkeys
         //
@@ -70,15 +72,15 @@ static void runChild(uint64_t start_key, uint64_t batchsize)
             if(ii != 15)
                 a_key[ii + 1] = next_key;
         }
-
-        //
+	
+	//
         // 3. 16 Rounds of enc/decryption
         //
 
         size_t amount; // Used for fwrite
         uint64_t data;
 	
-	temp_file = fopen("temp.txt", "rw");
+	temp_file = fopen("temp.txt", "w+b");
 	
 	fseek(temp_file, 0, SEEK_SET);
         fseek(pt_file, 0, SEEK_SET);    // move the file pointer back to the start of the file (if not currently there)
@@ -112,15 +114,15 @@ static void runChild(uint64_t start_key, uint64_t batchsize)
 	bool same = false;
 	if ((same = compareFile(temp_file, ct_file)))
 	  {
-	    same ? printf("Its the same") : printf("Wups");
+	    same ? printf("Its the same\n") : printf("Wups\n");
 	    complete = true;
-	    printf("Key found!\n Key : ");
+	    printf("Key found!\nKey : ");
 	    printbits(key);
 	    printf("\n");
 	    break;
 	  }
+	fclose(temp_file);
     }
-    fclose(temp_file);
 }
 
 // Main
@@ -163,7 +165,7 @@ int main(int argc, char ** argv)
             break;
 
         case 'c': // Output file
-            ct_file = fopen(optarg, "rw");
+            ct_file = fopen(optarg, "w+b");
             if(ct_file == NULL)
             {
                 fprintf(stderr,
@@ -210,7 +212,7 @@ int main(int argc, char ** argv)
 
     // Vars
     uint64_t key = 0;
-    uint64_t batchsize = 1000;
+    uint64_t batchsize = 100;
 
     runChild(key, batchsize);
 
