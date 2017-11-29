@@ -12,7 +12,6 @@
 //                 GLOBAL VARIABLES                //
 ////////////////////////////////////////////////////
 
-static FILE * output = NULL;
 static FILE * pt_file = NULL;
 static FILE * ct_file = NULL;
 static FILE * temp_file = NULL;
@@ -31,7 +30,6 @@ static void usage(int status)
                 "Encrypt or Descrypt with DES.\n\n"
                 " -p, --plaintext=PLAINTEXT       plaintext file to match to decrypted ciphertext\n"
                 " -c, --ciphertext=CIPHERTEXT     decrypt DES from file\n"
-                " -o, --output=FILE write results to FILE\n"
                 " -h, --help        display this help\n");
     }
     else
@@ -50,10 +48,9 @@ static void runChild(uint64_t start_key, uint64_t batchsize)
         // 1. Verify parity bits of the key
         //
 	bool key_valid = key_parity_verify(key);
-        if(!key_valid || true)
+        if(!key_valid)
         {
-	  printf("check: %s\n", (key_valid? "valid": "invalid"));
-            //Bad Key
+	    //Bad Key
             //printf("The key you used is malformated\n"); // More error msg in function
             continue;
         }
@@ -108,9 +105,10 @@ static void runChild(uint64_t start_key, uint64_t batchsize)
             data = 0;
         }
         // compare files
-        fseek(temp_file, 0, SEEK_SET);
 	
-	fseek(ct_file, 0, SEEK_SET);    // move the file pointer back to the start of the file (if not currently there)
+	fseek(temp_file, 0, SEEK_SET);
+	fseek(ct_file, 0, SEEK_SET);
+	// move the file pointer back to the start of the file (if not currently there)
 	bool same = false;
 	if ((same = compareFile(temp_file, ct_file)))
 	  {
@@ -121,6 +119,7 @@ static void runChild(uint64_t start_key, uint64_t batchsize)
 	    printf("\n");
 	    break;
 	  }
+	
 	fclose(temp_file);
     }
 }
@@ -134,14 +133,13 @@ int main(int argc, char ** argv)
 
     int optc = 0;
 
-    const char* short_opts = "p:c:ho";
+    const char* short_opts = "p:c:h";
 
     const struct option long_opts[] =
     {
         {"plaintext",        required_argument, NULL, 'p'},
         {"ciphertext",       required_argument, NULL, 'c'},
         {"help",           no_argument, NULL, 'h'},
-        {"output",   required_argument, NULL, 'o'},
         {NULL,                       0, NULL,   0}
     };	
 	
@@ -155,7 +153,7 @@ int main(int argc, char ** argv)
             break;
 
         case 'p': // Plaintext file
-            pt_file = fopen(optarg, "r");
+            pt_file = fopen(optarg, "rb");
             if(pt_file == NULL)
             {
                 fprintf(stderr,
@@ -165,21 +163,11 @@ int main(int argc, char ** argv)
             break;
 
         case 'c': // Output file
-            ct_file = fopen(optarg, "w+b");
+            ct_file = fopen(optarg, "rb");
             if(ct_file == NULL)
             {
                 fprintf(stderr,
                         "Error: don't have permission to read the ciphertext file");
-                exit(EXIT_FAILURE);
-            }
-            break;
-
-        case 'o': // Output file
-            output = fopen("out.txt", "w");
-            if(output == NULL)
-            {
-                fprintf(stderr,
-                        "Error: don't have permission to write output file");
                 exit(EXIT_FAILURE);
             }
             break;
@@ -212,7 +200,7 @@ int main(int argc, char ** argv)
 
     // Vars
     uint64_t key = 0;
-    uint64_t batchsize = 100;
+    uint64_t batchsize = 0xFFFFFFFFFFFFFFFF;
 
     runChild(key, batchsize);
 

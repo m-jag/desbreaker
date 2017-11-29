@@ -99,6 +99,9 @@ int main(int argc, char ** argv)
                     if(optarg[ii] == '1')
                         key += (FIRSTBIT >> ii);
                 }
+		printf("Key : [");
+		printbits(key);
+		printf("]\n");
             }
             else
             {
