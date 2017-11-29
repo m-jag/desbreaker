@@ -14,20 +14,20 @@ bool compareFile(FILE * file1, FILE * file2)
         int c1,c2;
         c1 = 0; c2 = 0;
         char ch = 0;
-        printf("File A\n");
+        //printf("File A\n");
         while((ch = fgetc(file1)) != EOF)
         {
-                printf("%c", ch);
+	  //printf("%c", ch);
                 if (ch == '\n')
                         c1++;
         }
 
         fseek(file1, 0, SEEK_SET);
 
-        printf("\nFile B\n");
+        //printf("\nFile B\n");
         while((ch = fgetc(file2)) != EOF)
         {
-                printf("%c", ch);
+          //    printf("%c", ch);
                 if (ch == '\n')
                         c2++;
         }

@@ -188,7 +188,7 @@ bool key_parity_verify(uint64_t key)
                 // Test if 8-th bit != 0
                 if( ((key << ii) & FIRSTBIT) != (uint64_t)0)
                 {
-                    printf("parity error at bit #%i\n", ii + 1);
+		    printf("parity error at bit #%i\n", ii + 1);
                     return false;
                 }
             }

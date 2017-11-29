@@ -7,7 +7,6 @@
 
 #include "DES.h"
 #include "comparefile.h"
-//Comment for Xin
 
 //////////////////////////////////////////////////////
 //                 GLOBAL VARIABLES                //
@@ -42,11 +41,11 @@ static void usage(int status)
     exit(status);
 }
 
-static void runChild(bool encrypt, int start_key, int batchsize)
+static void runChild(uint64_t start_key, uint64_t batchsize)
 {
-    for (int key = start_key; !complete && key < start_key + batchsize; key++)
+    for (uint64_t key = start_key; !complete && key < start_key + batchsize; key++)
     {
-        printf("%d\n", key);
+        printf("%lu\n", key);
         //
         // 1. Verify parity bits of the key
         //
@@ -78,39 +77,22 @@ static void runChild(bool encrypt, int start_key, int batchsize)
 
         size_t amount; // Used for fwrite
         uint64_t data;
-
-        FILE * inFile = encrypt ? pt_file: ct_file;
 	
-        temp_file = fopen("temp.txt", "w"); // reset temp.txt to write the next file
+	temp_file = fopen("temp.txt", "rw");
+	
 	fseek(temp_file, 0, SEEK_SET);
-        fseek(inFile, 0, SEEK_SET);    // move the file pointer back to the start of the file (if not currently there)
-
-        while((amount = fread(&data, 1, 8, inFile)) > 0)
+        fseek(pt_file, 0, SEEK_SET);    // move the file pointer back to the start of the file (if not currently there)
+	
+        while((amount = fread(&data, 1, 8, pt_file)) > 0)
         {
             if(amount != 8)
                 data = data << (8 * (8 - amount));
 
             // Initial permutation
             Permutation(&data, true);
-
-            // Encrypt rounds
-            if(encrypt)
-            {
-                for(int ii = 0; ii < 16; ii++)
-                    rounds(&data, a_key[ii]);
-            }
-            // Decrypt rounds
-            else
-            {
-                // Switching blocks
-                data = (data << 32) + (data >> 32);
-
-                for(int ii = 15; ii >= 0; ii--)
-                    rounds(&data, a_key[ii]);
-                
-                // Switching blocks back
-                data = (data << 32) + (data >> 32);
-            }
+	    
+	    for(int ii = 0; ii < 16; ii++)
+	      rounds(&data, a_key[ii]);
 
             // Final permutation
             Permutation(&data, false);
@@ -126,33 +108,19 @@ static void runChild(bool encrypt, int start_key, int batchsize)
         // compare files
         fseek(temp_file, 0, SEEK_SET);
 	
-        if (encrypt)
-        {
-            fseek(ct_file, 0, SEEK_SET);    // move the file pointer back to the start of the file (if not currently there)
-	    bool same = false;
-	    if ((same = compareFile(temp_file, ct_file)))
-            {
-	      same ? printf("Its the same") : printf("Wups");
-                complete = true;
-                printf("Key found!\n Key : ");
-                printbits(key);
-                printf("\n");
-                break;
-            }
-        }
-        else if (!encrypt)
-        {
-            fseek(pt_file, 0, SEEK_SET);    // move the file pointer back to the start of the file (if not currently there)
-            if (compareFile(temp_file, pt_file))
-            {
-                complete = true;
-                printf("Key found!\n Key : ");
-                printbits(key);
-                printf("\n");
-                break;
-            }
-        }
+	fseek(ct_file, 0, SEEK_SET);    // move the file pointer back to the start of the file (if not currently there)
+	bool same = false;
+	if ((same = compareFile(temp_file, ct_file)))
+	  {
+	    same ? printf("Its the same") : printf("Wups");
+	    complete = true;
+	    printf("Key found!\n Key : ");
+	    printbits(key);
+	    printf("\n");
+	    break;
+	  }
     }
+    fclose(temp_file);
 }
 
 // Main
@@ -185,7 +153,7 @@ int main(int argc, char ** argv)
             break;
 
         case 'p': // Plaintext file
-            pt_file = fopen(optarg, "rw");
+            pt_file = fopen(optarg, "r");
             if(pt_file == NULL)
             {
                 fprintf(stderr,
@@ -222,8 +190,6 @@ int main(int argc, char ** argv)
     //////////////////////////////////////////////////////
     //                CHECK ARGUMENTS                  //
     ////////////////////////////////////////////////////
-
-    temp_file = fopen("temp.txt", "rw");
     
     if(pt_file == NULL)
     {
@@ -237,23 +203,6 @@ int main(int argc, char ** argv)
         usage(EXIT_FAILURE);
     }
 
-    if(temp_file == NULL)
-    {
-        fprintf(stderr, "Error: temp_file was not created\n");
-        usage(EXIT_FAILURE);
-    }
-
-    // Default output file if none is specified
-    if(output == NULL) 
-        output = fopen("output.txt", "w");
-
-    // Check if we have write rights
-    if(output == NULL)
-    {
-        fprintf(stderr, "Error: don't have permission to write output file\n");
-        exit(EXIT_FAILURE);
-    }
-
     //////////////////////////////////////////////////////
     //                      APP                        //
     ////////////////////////////////////////////////////
@@ -263,14 +212,12 @@ int main(int argc, char ** argv)
     uint64_t key = 0;
     uint64_t batchsize = 1000;
 
-    runChild(true, key, batchsize);
+    runChild(key, batchsize);
 
     printf("Key Found : %s\n", (complete ? "True" : "False"));
 
     fclose(pt_file);
     fclose(ct_file);
-    fclose(temp_file);
-    fclose(output);
 
     return EXIT_SUCCESS;
 }
