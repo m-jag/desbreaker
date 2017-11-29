@@ -8,3 +8,7 @@ Key organized into bytes
 
 //Run desbreaker to find the key
 ./desbreaker -p plain.txt -c cipher.txt [-o output.txt]
+
+./desbox -k 0000000000000000000000000000000000000000000000000011111111111111 -o cipher.txt plain.txt
+
+0000000000000000000000000000000000000000000000000011111111111111
