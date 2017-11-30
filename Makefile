@@ -37,7 +37,7 @@ comparefile.o: comparefile.c comparefile.h
 	$(CC) $(CFLAGS) $(CPPFLAGS) -c $<
 
 clean:
-	@rm -f *.o $(APP) genkey
+	@rm -f *.o $(APP) genkey desbox
 
 help :
 	@echo -e "Usage :"
