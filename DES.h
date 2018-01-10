@@ -1,10 +1,3 @@
-// 
-// Implementation of DES coded by:
-//     - David Wong, moi@davidwong.fr
-//     - Jacques Monin, jacques.monin@u-bordeaux.fr
-//     - Hugo Bonnin, hugo.bonnin@u-bordeaux.fr
-//
-
 #ifndef DES_H
 #define DES_H
 
